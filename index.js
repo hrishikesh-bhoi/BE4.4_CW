@@ -1,9 +1,18 @@
 const express = require("express");
+const cors = require("cors");
 const app = express();
 const { initializeDatabase } = require("./db/db.connect.js");
 const Movie = require("./models/movie.models.js")
 
 app.use(express.json());
+
+const corsOptions = {
+   origin: "http://localhost:5173",
+  credentials: true,
+  optionSuccessStatus: 200,
+};
+
+app.use(cors(corsOptions));
 
 initializeDatabase();
 
@@ -32,7 +41,7 @@ app.post("/movies", async(req, res) => {
     }
 });
 
-// find a movie witha particular title
+// find a movie with a particular title
 async function readMovieByTitle(movieTitle) {
     try {
         const movie = await Movie.findOne({title: movieTitle});
