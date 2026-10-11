@@ -11,9 +11,22 @@ app.use(cors({
     ]
 }));
 
-app.use(express.json());
+
 
 // initializeDatabase();
+app.use(express.json());
+
+app.use(async (req, res, next) => {
+    try {
+        await initializeDatabase();
+        next();
+    } catch (error) {
+        console.error("Database connection failed:", error.message);
+        res.status(500).json({
+            message: "Database connection failed."
+        });
+    }
+});
 
 
 async function createMovie(newMovie) {
@@ -199,6 +212,7 @@ if (require.main === module) {
         })
         .catch((error) => {
             console.error("Database connection failed:", error.message);
+            process.exit(1);
         });
 }
 
