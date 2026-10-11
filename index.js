@@ -4,17 +4,16 @@ const app = express();
 const { initializeDatabase } = require("./db/db.connect.js");
 const Movie = require("./models/movie.models.js")
 
+app.use(cors({
+    origin: [
+        "http://localhost:5173",
+        "https://bi-1-1-cw-sage.vercel.app"
+    ]
+}));
+
 app.use(express.json());
 
-const corsOptions = {
-   origin: "http://localhost:5173",
-  credentials: true,
-  optionSuccessStatus: 200,
-};
-
-app.use(cors(corsOptions));
-
-initializeDatabase();
+// initializeDatabase();
 
 
 async function createMovie(newMovie) {
@@ -65,7 +64,7 @@ app.get("/movies/:title", async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({message: "Failed to fetch movie."})
+        res.status(500).json({message: "Failed to fetch movie.", error: error.message})
     }
 });
 
@@ -73,11 +72,10 @@ app.get("/movies/:title", async (req, res) => {
 
 async function readAllMovies() {
     try {
-        const allMovies = await Movie.find();
-        return allMovies;
-        
+        return await Movie.find();
     } catch (error) {
-        console.log(error)
+        console.error("Error fetching movies:", error.message);
+        throw error;
     }
 }
 
@@ -190,7 +188,18 @@ app.post("/movies/:movieId", async(req, res) => {
 })
 
 
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port: http://localhost:${PORT}`);
-});
+if (require.main === module) {
+    const PORT = process.env.PORT || 3000;
+
+    initializeDatabase()
+        .then(() => {
+            app.listen(PORT, () => {
+                console.log(`Server running at http://localhost:${PORT}`);
+            });
+        })
+        .catch((error) => {
+            console.error("Database connection failed:", error.message);
+        });
+}
+
+module.exports = app;
