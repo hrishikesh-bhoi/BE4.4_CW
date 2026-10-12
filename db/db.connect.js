@@ -1,27 +1,14 @@
 const mongoose = require("mongoose");
 require("dotenv").config();
 
-let connectionPromise;
+const mongoUri = process.env.MONGODB;
 
 const initializeDatabase = async () => {
-    const mongoUri = process.env.MONGODB;
 
-    if (!mongoUri) {
-        throw new Error("MONGODB environment variable is missing.");
-    }
+    await mongoose.connect(mongoUri).then(() => {
+        console.log("Connected to Database");
+    }).catch((error)=> console.log("Error connecting to database", error))
 
-    if (mongoose.connection.readyState === 1) {
-        return mongoose.connection;
-    }
-
-    if (!connectionPromise) {
-        connectionPromise = mongoose.connect(mongoUri).catch((error) => {
-            connectionPromise = null;
-            throw error;
-        });
-    }
-
-    return connectionPromise;
 };
 
 module.exports = { initializeDatabase };

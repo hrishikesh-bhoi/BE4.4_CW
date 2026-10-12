@@ -1,32 +1,11 @@
 const express = require("express");
-const cors = require("cors");
 const app = express();
 const { initializeDatabase } = require("./db/db.connect.js");
 const Movie = require("./models/movie.models.js")
 
-app.use(cors({
-    origin: [
-        "http://localhost:5173",
-        "https://bi-1-1-cw-sage.vercel.app"
-    ]
-}));
-
-
-
-// initializeDatabase();
 app.use(express.json());
 
-app.use(async (req, res, next) => {
-    try {
-        await initializeDatabase();
-        next();
-    } catch (error) {
-        console.error("Database connection failed:", error.message);
-        res.status(500).json({
-            message: "Database connection failed."
-        });
-    }
-});
+initializeDatabase();
 
 
 async function createMovie(newMovie) {
@@ -53,7 +32,7 @@ app.post("/movies", async(req, res) => {
     }
 });
 
-// find a movie with a particular title
+// find a movie witha particular title
 async function readMovieByTitle(movieTitle) {
     try {
         const movie = await Movie.findOne({title: movieTitle});
@@ -77,7 +56,7 @@ app.get("/movies/:title", async (req, res) => {
         }
 
     } catch (error) {
-        res.status(500).json({message: "Failed to fetch movie.", error: error.message})
+        res.status(500).json({message: "Failed to fetch movie."})
     }
 });
 
@@ -85,10 +64,11 @@ app.get("/movies/:title", async (req, res) => {
 
 async function readAllMovies() {
     try {
-        return await Movie.find();
+        const allMovies = await Movie.find();
+        return allMovies;
+        
     } catch (error) {
-        console.error("Error fetching movies:", error.message);
-        throw error;
+       throw error;
     }
 }
 
@@ -158,7 +138,7 @@ async function deleteMovie(movieId) {
         const deletedMovie = await Movie.findByIdAndDelete(movieId);
         return deletedMovie;
     } catch (error) {
-        console.log(error);
+        throw error;
     }
 }
 
@@ -167,53 +147,42 @@ app.delete("/movies/:movieId", async(req, res) => {
         const deletedMovie = await deleteMovie(req.params.movieId);
         if(deletedMovie) {
 
-            res.status(200).json({message: "Movie deleted successfully."});
+            res.status(200).json({message: "Movie deleted successfully.", data: deletedMovie});
+        } else {
+            res.status(404).json({error: "Movie not found."})
         }
     } catch (error) {
         res.status(500).json({error: "Failed to delete movie."})
         
     }
-});
+})
 
 async function updateMovie(movieId, dataToUpdate) {
     try {
-
         const updatedMovie = await Movie.findByIdAndUpdate(movieId, dataToUpdate, {new: true});
         return updatedMovie;
-        
     } catch (error) {
-        console.log("Error i updating movie rating", error);
+        throw error;
     }
 }
 
-app.post("/movies/:movieId", async(req, res) => {
+app.post("/movies/:movieId", async (req, res) => {
     try {
         const updatedMovie = await updateMovie(req.params.movieId, req.body);
 
         if(updatedMovie) {
-            res.status(200).json({ message: "Movie updated successfully.", updatedMovie: updatedMovie});
+            res.status(200).json({ message: "Movie updated successfully.", data: updatedMovie});
         } else {
-            res.status(404).json({ error: "Movie not found."})
+            res.status(404).json({error: "Movie not found."});
         }
+        
     } catch (error) {
-        res.status(500).json({error: "Failed to update movie."})
+        res.status(500).json({message: "Failed to update Movie.", error: error.message});        
     }
 })
 
 
-if (require.main === module) {
-    const PORT = process.env.PORT || 3000;
-
-    initializeDatabase()
-        .then(() => {
-            app.listen(PORT, () => {
-                console.log(`Server running at http://localhost:${PORT}`);
-            });
-        })
-        .catch((error) => {
-            console.error("Database connection failed:", error.message);
-            process.exit(1);
-        });
-}
-
-module.exports = app;
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port: http://localhost:${PORT}`);
+});
