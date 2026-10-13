@@ -4,11 +4,13 @@ const cors = require("cors");
 const { initializeDatabase } = require("./db/db.connect.js");
 const Movie = require("./models/movie.models.js")
 
-app.use(express.json());
 app.use(cors({
-    origin: "http://localhost:5173"
+    origin: [
+        "http://localhost:5173",
+        "https://bi-1-2-cw-kappa.vercel.app"
+    ]
 }));
-
+app.use(express.json());
 initializeDatabase();
 
 
