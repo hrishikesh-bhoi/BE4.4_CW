@@ -7,7 +7,8 @@ const Movie = require("./models/movie.models.js")
 app.use(cors({
     origin: [
         "http://localhost:5173",
-        "https://bi-1-2-cw-kappa.vercel.app"
+        "https://bi-1-2-cw-kappa.vercel.app",
+        "https://bi-1-3-cw-two.vercel.app"
     ]
 }));
 app.use(express.json());
